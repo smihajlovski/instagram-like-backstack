@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">InstaBackstack</string>
+
+    <!--  Tabs  -->
+    <string name="navigation_home">Home</string>
+    <string name="navigation_dashboard">Dashboard</string>
+    <string name="navigation_notifications">Notifications</string>
+
+    <!--  Home Fragment  -->
+    <string name="home_fragment_title">This is Home Fragment</string>
+    <string name="home_fragment_button">Go to dashboard</string>
+
+    <!--  Notifications Fragment  -->
+    <string name="notifications_fragment_title">This is Notifications Fragment</string>
+    <string name="notifications_fragment_button">Go to dashboard</string>
+
+    <!--  Dashboard Fragment  -->
+    <string name="dashboard_fragment_title">This is Dashboard Fragment</string>
+    <string name="dashboard_fragment_button">Go to notifications</string>
+
+</resources>
