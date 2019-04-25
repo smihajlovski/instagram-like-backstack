@@ -2,9 +2,11 @@ package com.smihajlovski.instabackstack.ui.main;
 
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.smihajlovski.instabackstack.R;
 import com.smihajlovski.instabackstack.databinding.ActivityMainBinding;
@@ -28,6 +30,7 @@ import static com.smihajlovski.instabackstack.utils.FragmentUtils.addInitialTabF
 import static com.smihajlovski.instabackstack.utils.FragmentUtils.addShowHideFragment;
 import static com.smihajlovski.instabackstack.utils.FragmentUtils.removeFragment;
 import static com.smihajlovski.instabackstack.utils.FragmentUtils.showHideTabFragment;
+import static com.smihajlovski.instabackstack.utils.StackListManager.resetTabStackIndex;
 import static com.smihajlovski.instabackstack.utils.StackListManager.updateStackIndex;
 import static com.smihajlovski.instabackstack.utils.StackListManager.updateStackToIndexFirst;
 import static com.smihajlovski.instabackstack.utils.StackListManager.updateTabStackIndex;
@@ -43,6 +46,14 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private Fragment homeFragment;
     private Fragment dashboardFragment;
     private Fragment notificationFragment;
+    private Handler handler = new Handler();
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            doublePressToExit = false;
+        }
+    };
+    private boolean doublePressToExit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +86,15 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         resolveBackPressed();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if (handler != null) {
+            handler.removeCallbacks(runnable);
+        }
+    }
+
     private void createStacks() {
         binder.bottomNavigationView.inflateMenu(R.menu.bottom_nav_tabs);
         binder.bottomNavigationView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
@@ -102,7 +122,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = item -> {
         switch (item.getItemId()) {
             case R.id.tab_home:
-                selectedTab(TAB_HOME);
+                if (menuStacks.size() == 1 && !menuStacks.get(0).equals(TAB_HOME)) {
+                    resetSelectedTab(TAB_HOME);
+                } else {
+                    selectedTab(TAB_HOME);
+                }
                 return true;
             case R.id.tab_dashboard:
                 selectedTab(TAB_DASHBOARD);
@@ -113,6 +137,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         }
         return false;
     };
+
+    private void resetSelectedTab(String tabId) {
+
+        currentTab = tabId;
+        BaseFragment.setCurrentTab(currentTab);
+
+        /*
+         * We are switching tabs, and target tab already has at least one fragment.
+         * Show the target fragment
+         */
+        showHideTabFragment(getSupportFragmentManager(), stacks.get(tabId).lastElement(), currentFragment);
+        resetStackLists(tabId);
+        assignCurrentFragment(stacks.get(tabId).lastElement());
+    }
 
     private void selectedTab(String tabId) {
 
@@ -179,7 +217,19 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
                 if (menuStacks.size() > 1) {
                     navigateToPreviousMenu();
                 } else {
-                    finish();
+                    // Reset to home
+                    binder.bottomNavigationView.setSelectedItemId(R.id.tab_home);
+
+                    if (doublePressToExit) {
+                        finish();
+                        return;
+                    }
+
+                    Toast
+                            .makeText(this, "Click back twice to exit", Toast.LENGTH_SHORT)
+                            .show();
+                    doublePressToExit = true;
+                    handler.postDelayed(runnable, 2000);
                 }
             }
         } else {
@@ -237,6 +287,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private void resolveStackLists(String tabId) {
         updateStackIndex(stackList, tabId);
         updateTabStackIndex(menuStacks, tabId);
+    }
+
+    private void resetStackLists(String tabId) {
+        updateStackIndex(stackList, tabId);
+        resetTabStackIndex(menuStacks, tabId);
     }
 
     private Fragment getCurrentFragmentFromShownStack() {

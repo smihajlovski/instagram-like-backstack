@@ -45,4 +45,17 @@ public class StackListManager {
             Collections.swap(tabList, i, i - 1);
         }
     }
+
+    /**
+     * Reset the tab to the home when the tabList is 1 left
+     * This occurred when onBackPressed
+     * @param tabList
+     * @param tabId
+     */
+    public static void resetTabStackIndex(List<String> tabList, String tabId) {
+        if (!tabList.contains(tabId)) {
+            tabList.remove(0);
+            tabList.add(tabId);
+        }
+    }
 }
