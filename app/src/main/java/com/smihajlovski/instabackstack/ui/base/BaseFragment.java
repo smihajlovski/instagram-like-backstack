@@ -2,7 +2,7 @@ package com.smihajlovski.instabackstack.ui.base;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 
 public class BaseFragment extends Fragment {
 

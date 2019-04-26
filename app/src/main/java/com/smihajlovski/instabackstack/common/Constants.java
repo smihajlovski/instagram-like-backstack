@@ -13,4 +13,6 @@ public class Constants {
     public static final String HOME_FRAGMENT = "HomeFragment";
     public static final String NOTIFICATIONS_FRAGMENT = "NotificationsFragment";
     public static final String DASHBOARD_FRAGMENT = "DashboardFragment";
+
+    public static final String EXTRA_IS_ROOT_FRAGMENT = ".extra_is_root_fragment";
 }

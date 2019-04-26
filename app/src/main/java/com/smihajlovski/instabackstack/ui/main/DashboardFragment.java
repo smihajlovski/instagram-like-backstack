@@ -1,27 +1,36 @@
 package com.smihajlovski.instabackstack.ui.main;
 
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
 
 import com.smihajlovski.instabackstack.R;
 import com.smihajlovski.instabackstack.databinding.FragmentDashboardBinding;
 import com.smihajlovski.instabackstack.ui.base.BaseFragment;
 
 import static com.smihajlovski.instabackstack.common.Constants.DASHBOARD_FRAGMENT;
-import static com.smihajlovski.instabackstack.common.Constants.TAB_DASHBOARD;
+import static com.smihajlovski.instabackstack.common.Constants.EXTRA_IS_ROOT_FRAGMENT;
 import static com.smihajlovski.instabackstack.utils.FragmentUtils.sendActionToActivity;
 
 public class DashboardFragment extends BaseFragment {
 
-    public static final String ACTION_NOTIFICATION = DASHBOARD_FRAGMENT + "action.notification";
+    static final String ACTION_NOTIFICATION = DASHBOARD_FRAGMENT + "action.notification";
     private FragmentDashboardBinding binder;
 
     public DashboardFragment() {
+    }
+
+    public static DashboardFragment newInstance(boolean isRoot) {
+        Bundle args = new Bundle();
+        args.putBoolean(EXTRA_IS_ROOT_FRAGMENT, isRoot);
+        DashboardFragment fragment = new DashboardFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Nullable

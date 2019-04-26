@@ -1,8 +1,8 @@
 package com.smihajlovski.instabackstack.utils;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.smihajlovski.instabackstack.ui.base.BaseFragment.FragmentInteractionCallback;
 

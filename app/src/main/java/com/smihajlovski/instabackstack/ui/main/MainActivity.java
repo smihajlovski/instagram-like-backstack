@@ -1,11 +1,12 @@
 package com.smihajlovski.instabackstack.ui.main;
 
-import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.smihajlovski.instabackstack.R;
 import com.smihajlovski.instabackstack.databinding.ActivityMainBinding;
 import com.smihajlovski.instabackstack.ui.base.BaseFragment;
@@ -20,6 +21,7 @@ import java.util.Stack;
 import static com.smihajlovski.instabackstack.common.Constants.ACTION;
 import static com.smihajlovski.instabackstack.common.Constants.DATA_KEY_1;
 import static com.smihajlovski.instabackstack.common.Constants.DATA_KEY_2;
+import static com.smihajlovski.instabackstack.common.Constants.EXTRA_IS_ROOT_FRAGMENT;
 import static com.smihajlovski.instabackstack.common.Constants.TAB_DASHBOARD;
 import static com.smihajlovski.instabackstack.common.Constants.TAB_HOME;
 import static com.smihajlovski.instabackstack.common.Constants.TAB_NOTIFICATIONS;
@@ -58,13 +60,13 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         if (action != null) {
             switch (action) {
                 case HomeFragment.ACTION_DASHBOARD:
-                    showFragment(bundle, new DashboardFragment());
+                    showFragment(bundle, DashboardFragment.newInstance(false));
                     break;
                 case DashboardFragment.ACTION_NOTIFICATION:
-                    showFragment(bundle, new NotificationsFragment());
+                    showFragment(bundle, NotificationsFragment.newInstance(false));
                     break;
                 case NotificationsFragment.ACTION_DASHBOARD:
-                    showFragment(bundle, new DashboardFragment());
+                    showFragment(bundle, DashboardFragment.newInstance(false));
                     break;
             }
         }
@@ -79,9 +81,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         binder.bottomNavigationView.inflateMenu(R.menu.bottom_nav_tabs);
         binder.bottomNavigationView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener);
 
-        homeFragment = new HomeFragment();
-        dashboardFragment = new DashboardFragment();
-        notificationFragment = new NotificationsFragment();
+        homeFragment = HomeFragment.newInstance(true);
+        dashboardFragment = DashboardFragment.newInstance(true);
+        notificationFragment = NotificationsFragment.newInstance(true);
 
         stacks = new LinkedHashMap<>();
         stacks.put(TAB_HOME, new Stack<>());
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         stackList.add(TAB_NOTIFICATIONS);
 
         binder.bottomNavigationView.setSelectedItemId(R.id.tab_home);
+        binder.bottomNavigationView.setOnNavigationItemReselectedListener(onNavigationItemReselectedListener);
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = item -> {
@@ -114,8 +117,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return false;
     };
 
-    private void selectedTab(String tabId) {
+    private BottomNavigationView.OnNavigationItemReselectedListener onNavigationItemReselectedListener = menuItem -> {
+        switch (menuItem.getItemId()) {
+            case R.id.tab_home:
+                popStackExceptFirst();
+                break;
+            case R.id.tab_dashboard:
+                popStackExceptFirst();
+                break;
+            case R.id.tab_notifications:
+                popStackExceptFirst();
+                break;
+        }
+    };
 
+    private void selectedTab(String tabId) {
         currentTab = tabId;
         BaseFragment.setCurrentTab(currentTab);
 
@@ -206,6 +222,20 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         binder.bottomNavigationView.setSelectedItemId(resolveTabPositions(currentTab));
         showHideTabFragment(getSupportFragmentManager(), stacks.get(currentTab).lastElement(), currentFragment);
         assignCurrentFragment(stacks.get(currentTab).lastElement());
+    }
+
+    private void popStackExceptFirst() {
+        if (stacks.get(currentTab).size() == 1) {
+            return;
+        }
+        while (!stacks.get(currentTab).empty()
+                && !stacks.get(currentTab).peek().getArguments().getBoolean(EXTRA_IS_ROOT_FRAGMENT)) {
+            getSupportFragmentManager().beginTransaction().remove(stacks.get(currentTab).peek());
+            stacks.get(currentTab).pop();
+        }
+        Fragment fragment = stacks.get(currentTab).elementAt(0);
+        removeFragment(getSupportFragmentManager(), fragment, currentFragment);
+        assignCurrentFragment(fragment);
     }
 
     /*
