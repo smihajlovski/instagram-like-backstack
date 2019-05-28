@@ -36,7 +36,7 @@ import static com.smihajlovski.instabackstack.utils.StackListManager.updateTabSt
 
 public class MainActivity extends AppCompatActivity implements FragmentInteractionCallback {
 
-    private Map<String, Stack<Fragment>> stacks;
+    private Map<String, Stack<String>> tagStacks;
     private String currentTab;
     private ActivityMainBinding binder;
     private List<String> stackList;
@@ -85,10 +85,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         dashboardFragment = DashboardFragment.newInstance(true);
         notificationFragment = NotificationsFragment.newInstance(true);
 
-        stacks = new LinkedHashMap<>();
-        stacks.put(TAB_HOME, new Stack<>());
-        stacks.put(TAB_DASHBOARD, new Stack<>());
-        stacks.put(TAB_NOTIFICATIONS, new Stack<>());
+        tagStacks = new LinkedHashMap<>();
+        tagStacks.put(TAB_HOME, new Stack<>());
+        tagStacks.put(TAB_DASHBOARD, new Stack<>());
+        tagStacks.put(TAB_NOTIFICATIONS, new Stack<>());
 
         menuStacks = new ArrayList<>();
         menuStacks.add(TAB_HOME);
@@ -135,24 +135,24 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         currentTab = tabId;
         BaseFragment.setCurrentTab(currentTab);
 
-        if (stacks.get(tabId).size() == 0) {
+        if (tagStacks.get(tabId).size() == 0) {
             /*
-             * First time this tab is selected. So add first fragment of that tab.
-             * We are adding a new fragment which is not present in stack. So add to stack is true.
+              First time this tab is selected. So add first fragment of that tab.
+              We are adding a new fragment which is not present in stack. So add to stack is true.
              */
             switch (tabId) {
                 case TAB_HOME:
-                    addInitialTabFragment(getSupportFragmentManager(), stacks, TAB_HOME, homeFragment, R.id.frame_layout, true);
+                    addInitialTabFragment(getSupportFragmentManager(), tagStacks, TAB_HOME, homeFragment, R.id.frame_layout, true);
                     resolveStackLists(tabId);
                     assignCurrentFragment(homeFragment);
                     break;
                 case TAB_DASHBOARD:
-                    addAdditionalTabFragment(getSupportFragmentManager(), stacks, TAB_DASHBOARD, dashboardFragment, currentFragment, R.id.frame_layout, true);
+                    addAdditionalTabFragment(getSupportFragmentManager(), tagStacks, TAB_DASHBOARD, dashboardFragment, currentFragment, R.id.frame_layout, true);
                     resolveStackLists(tabId);
                     assignCurrentFragment(dashboardFragment);
                     break;
                 case TAB_NOTIFICATIONS:
-                    addAdditionalTabFragment(getSupportFragmentManager(), stacks, TAB_NOTIFICATIONS, notificationFragment, currentFragment, R.id.frame_layout, true);
+                    addAdditionalTabFragment(getSupportFragmentManager(), tagStacks, TAB_NOTIFICATIONS, notificationFragment, currentFragment, R.id.frame_layout, true);
                     resolveStackLists(tabId);
                     assignCurrentFragment(notificationFragment);
                     break;
@@ -162,9 +162,10 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
              * We are switching tabs, and target tab already has at least one fragment.
              * Show the target fragment
              */
-            showHideTabFragment(getSupportFragmentManager(), stacks.get(tabId).lastElement(), currentFragment);
+            Fragment targetFragment = getSupportFragmentManager().findFragmentByTag(tagStacks.get(tabId).lastElement());
+            showHideTabFragment(getSupportFragmentManager(), targetFragment, currentFragment);
             resolveStackLists(tabId);
-            assignCurrentFragment(stacks.get(tabId).lastElement());
+            assignCurrentFragment(targetFragment);
         }
     }
 
@@ -173,10 +174,11 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
          * Select the second last fragment in current tab's stack,
          * which will be shown after the fragment transaction given below
          */
-        Fragment fragment = stacks.get(currentTab).elementAt(stacks.get(currentTab).size() - 2);
+        String fragmentTag = tagStacks.get(currentTab).elementAt(tagStacks.get(currentTab).size() - 2);
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(fragmentTag);
 
         /*pop current fragment from stack */
-        stacks.get(currentTab).pop();
+        tagStacks.get(currentTab).pop();
 
         removeFragment(getSupportFragmentManager(), fragment, currentFragment);
 
@@ -185,8 +187,8 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
 
     private void resolveBackPressed() {
         int stackValue = 0;
-        if (stacks.get(currentTab).size() == 1) {
-            Stack<Fragment> value = stacks.get(stackList.get(1));
+        if (tagStacks.get(currentTab).size() == 1) {
+            Stack<String> value = tagStacks.get(stackList.get(1));
             if (value.size() > 1) {
                 stackValue = value.size();
                 popAndNavigateToPreviousMenu();
@@ -209,8 +211,9 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         currentTab = stackList.get(1);
         BaseFragment.setCurrentTab(currentTab);
         binder.bottomNavigationView.setSelectedItemId(resolveTabPositions(currentTab));
-        showHideTabFragment(getSupportFragmentManager(), stacks.get(currentTab).lastElement(), currentFragment);
-        assignCurrentFragment(stacks.get(currentTab).lastElement());
+        Fragment targetFragment = getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).lastElement());
+        showHideTabFragment(getSupportFragmentManager(), targetFragment, currentFragment);
+        assignCurrentFragment(targetFragment);
         updateStackToIndexFirst(stackList, tempCurrent);
         menuStacks.remove(0);
     }
@@ -220,20 +223,21 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         currentTab = menuStacks.get(0);
         BaseFragment.setCurrentTab(currentTab);
         binder.bottomNavigationView.setSelectedItemId(resolveTabPositions(currentTab));
-        showHideTabFragment(getSupportFragmentManager(), stacks.get(currentTab).lastElement(), currentFragment);
-        assignCurrentFragment(stacks.get(currentTab).lastElement());
+        Fragment targetFragment = getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).lastElement());
+        showHideTabFragment(getSupportFragmentManager(), targetFragment, currentFragment);
+        assignCurrentFragment(targetFragment);
     }
 
     private void popStackExceptFirst() {
-        if (stacks.get(currentTab).size() == 1) {
+        if (tagStacks.get(currentTab).size() == 1) {
             return;
         }
-        while (!stacks.get(currentTab).empty()
-                && !stacks.get(currentTab).peek().getArguments().getBoolean(EXTRA_IS_ROOT_FRAGMENT)) {
-            getSupportFragmentManager().beginTransaction().remove(stacks.get(currentTab).peek());
-            stacks.get(currentTab).pop();
+        while (!tagStacks.get(currentTab).empty()
+                && !getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).peek()).getArguments().getBoolean(EXTRA_IS_ROOT_FRAGMENT)) {
+            getSupportFragmentManager().beginTransaction().remove(getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).peek()));
+            tagStacks.get(currentTab).pop();
         }
-        Fragment fragment = stacks.get(currentTab).elementAt(0);
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).elementAt(0));
         removeFragment(getSupportFragmentManager(), fragment, currentFragment);
         assignCurrentFragment(fragment);
     }
@@ -244,7 +248,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     private void showFragment(Bundle bundle, Fragment fragmentToAdd) {
         String tab = bundle.getString(DATA_KEY_1);
         boolean shouldAdd = bundle.getBoolean(DATA_KEY_2);
-        addShowHideFragment(getSupportFragmentManager(), stacks, tab, fragmentToAdd, getCurrentFragmentFromShownStack(), R.id.frame_layout, shouldAdd);
+        addShowHideFragment(getSupportFragmentManager(), tagStacks, tab, fragmentToAdd, getCurrentFragmentFromShownStack(), R.id.frame_layout, shouldAdd);
         assignCurrentFragment(fragmentToAdd);
     }
 
@@ -270,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
     }
 
     private Fragment getCurrentFragmentFromShownStack() {
-        return stacks.get(currentTab).elementAt(stacks.get(currentTab).size() - 1);
+        return getSupportFragmentManager().findFragmentByTag(tagStacks.get(currentTab).elementAt(tagStacks.get(currentTab).size() - 1));
     }
 
     private void assignCurrentFragment(Fragment current) {

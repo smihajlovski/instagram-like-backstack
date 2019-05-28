@@ -5,7 +5,7 @@ import java.util.List;
 
 public class StackListManager {
 
-    /*
+    /**
      * Keeps track of clicked tabs and their respective stacks
      * Swaps the tabs to first position as they're clicked
      * Ensures proper navigation when back presses occur
@@ -17,7 +17,7 @@ public class StackListManager {
         }
     }
 
-    /*
+    /**
      * Keeps track of when switching between tabs occur
      * The next tab to be shown is pushed on top
      * The tab which was current before is now pushed as last
@@ -31,7 +31,7 @@ public class StackListManager {
         }
     }
 
-    /*
+    /**
      * Keeps track of the clicked tabs and ensures proper navigation if there are no nested fragments in the tabs
      * When navigating back, the user will end up on the first clicked tab
      * If the first tab is clicked again while navigating, the user will end up on the second tab clicked
