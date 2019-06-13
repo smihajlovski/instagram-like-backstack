@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         binder.bottomNavigationView.setOnNavigationItemReselectedListener(onNavigationItemReselectedListener);
     }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = item -> {
+    private final BottomNavigationView.OnNavigationItemSelectedListener onNavigationItemSelectedListener = item -> {
         switch (item.getItemId()) {
             case R.id.tab_home:
                 selectedTab(TAB_HOME);
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements FragmentInteracti
         return false;
     };
 
-    private BottomNavigationView.OnNavigationItemReselectedListener onNavigationItemReselectedListener = menuItem -> {
+    private final BottomNavigationView.OnNavigationItemReselectedListener onNavigationItemReselectedListener = menuItem -> {
         switch (menuItem.getItemId()) {
             case R.id.tab_home:
                 popStackExceptFirst();
